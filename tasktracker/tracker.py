@@ -15,7 +15,7 @@ SORT_KEYS: dict[str, Callable[[dict[str, Any]], Any]] = {
 def add_task(title, priority="medium", due=None, path=None):
     tasks = storage.load_tasks(path)
     task = {
-        "id": len(tasks) + 1,
+        "id": max((t["id"] for t in tasks), default=0) + 1,
         "title": title,
         "priority": priority,
         "due": due,

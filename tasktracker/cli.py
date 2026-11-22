@@ -1,7 +1,7 @@
 import argparse
 import sys
 
-from . import priority, tracker
+from . import priority, storage, tracker
 
 
 def format_task(t):
@@ -33,7 +33,14 @@ def main(argv=None):
     sub.add_parser("overdue", help="show overdue tasks")
 
     args = parser.parse_args(argv)
+    try:
+        return _run(args, parser)
+    except storage.StorageError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 2
 
+
+def _run(args, parser):
     if args.command == "add":
         t = tracker.add_task(args.title, args.priority, args.due)
         print(f"Added task {t['id']}: {t['title']}")
