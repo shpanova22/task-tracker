@@ -45,3 +45,13 @@ def test_overdue(tmp_path):
     tracker.add_task("future", due="2999-01-01", path=f)
     over = tracker.overdue_tasks(today="2026-11-22", path=f)
     assert [t["title"] for t in over] == ["old"]
+
+
+def test_unknown_priority_sorts_last_and_shows_question_mark(tmp_path):
+    from tasktracker import cli
+    f = str(tmp_path / "tasks.json")
+    tracker.add_task("weird", priority="urgent", path=f)
+    tracker.add_task("low one", priority="low", path=f)
+    tasks = tracker.list_tasks(sort_by="priority", path=f)
+    assert [t["title"] for t in tasks] == ["low one", "weird"]
+    assert " ?   weird" in cli.format_task(tasks[1])

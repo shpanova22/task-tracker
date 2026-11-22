@@ -1,6 +1,15 @@
+from collections.abc import Callable
 from datetime import date
+from typing import Any
 
-from . import storage
+from . import priority, storage
+
+# Strategy table: each sort mode is a key function. Adding a mode = adding one entry.
+SORT_KEYS: dict[str, Callable[[dict[str, Any]], Any]] = {
+    "id": lambda t: t["id"],
+    "priority": lambda t: priority.rank(t["priority"]),
+    "due": lambda t: t["due"] or "9999-12-31",
+}
 
 
 def add_task(title, priority="medium", due=None, path=None):
@@ -41,22 +50,8 @@ def list_tasks(show_done=True, sort_by="id", path=None):
     if not show_done:
         tasks = [t for t in tasks if not t["done"]]
 
-    if sort_by == "priority":
-        def key(t):
-            if t["priority"] == "high":
-                return 0
-            elif t["priority"] == "medium":
-                return 1
-            elif t["priority"] == "low":
-                return 2
-            else:
-                return 3
-        tasks = sorted(tasks, key=key)
-    elif sort_by == "due":
-        tasks = sorted(tasks, key=lambda t: t["due"] or "9999-12-31")
-    else:
-        tasks = sorted(tasks, key=lambda t: t["id"])
-    return tasks
+    key = SORT_KEYS.get(sort_by, SORT_KEYS["id"])
+    return sorted(tasks, key=key)
 
 
 def overdue_tasks(today=None, path=None):

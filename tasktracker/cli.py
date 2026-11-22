@@ -1,18 +1,11 @@
 import argparse
 import sys
 
-from . import tracker
+from . import priority, tracker
 
 
 def format_task(t):
-    if t["priority"] == "high":
-        mark = "!!!"
-    elif t["priority"] == "medium":
-        mark = "!!"
-    elif t["priority"] == "low":
-        mark = "!"
-    else:
-        mark = "?"
+    mark = priority.mark(t["priority"])
     status = "[x]" if t["done"] else "[ ]"
     due = f" (due {t['due']})" if t["due"] else ""
     return f"{t['id']:>3} {status} {mark:<3} {t['title']}{due}"
@@ -35,7 +28,7 @@ def main(argv=None):
 
     p_list = sub.add_parser("list", help="list tasks")
     p_list.add_argument("--pending", action="store_true")
-    p_list.add_argument("--sort", default="id", choices=["id", "priority", "due"])
+    p_list.add_argument("--sort", default="id", choices=sorted(tracker.SORT_KEYS))
 
     sub.add_parser("overdue", help="show overdue tasks")
 
