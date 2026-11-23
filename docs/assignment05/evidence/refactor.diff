@@ -1,0 +1,102 @@
+diff --git a/tasktracker/cli.py b/tasktracker/cli.py
+index 7e8c641..e87df11 100644
+--- a/tasktracker/cli.py
++++ b/tasktracker/cli.py
+@@ -1,18 +1,11 @@
+ import argparse
+ import sys
+ 
+-from . import tracker
++from . import priority, tracker
+ 
+ 
+ def format_task(t):
+-    if t["priority"] == "high":
+-        mark = "!!!"
+-    elif t["priority"] == "medium":
+-        mark = "!!"
+-    elif t["priority"] == "low":
+-        mark = "!"
+-    else:
+-        mark = "?"
++    mark = priority.mark(t["priority"])
+     status = "[x]" if t["done"] else "[ ]"
+     due = f" (due {t['due']})" if t["due"] else ""
+     return f"{t['id']:>3} {status} {mark:<3} {t['title']}{due}"
+@@ -35,7 +28,7 @@ def main(argv=None):
+ 
+     p_list = sub.add_parser("list", help="list tasks")
+     p_list.add_argument("--pending", action="store_true")
+-    p_list.add_argument("--sort", default="id", choices=["id", "priority", "due"])
++    p_list.add_argument("--sort", default="id", choices=sorted(tracker.SORT_KEYS))
+ 
+     sub.add_parser("overdue", help="show overdue tasks")
+ 
+diff --git a/tasktracker/priority.py b/tasktracker/priority.py
+new file mode 100644
+index 0000000..54ce68f
+--- /dev/null
++++ b/tasktracker/priority.py
+@@ -0,0 +1,16 @@
++"""Single source of truth for task priorities (rank for sorting, mark for display)."""
++
++PRIORITIES: dict[str, tuple[int, str]] = {
++    "high": (0, "!!!"),
++    "medium": (1, "!!"),
++    "low": (2, "!"),
++}
++UNKNOWN: tuple[int, str] = (3, "?")
++
++
++def rank(priority: str) -> int:
++    return PRIORITIES.get(priority, UNKNOWN)[0]
++
++
++def mark(priority: str) -> str:
++    return PRIORITIES.get(priority, UNKNOWN)[1]
+diff --git a/tasktracker/tracker.py b/tasktracker/tracker.py
+index 3af8c29..05105c4 100644
+--- a/tasktracker/tracker.py
++++ b/tasktracker/tracker.py
+@@ -1,6 +1,15 @@
++from collections.abc import Callable
+ from datetime import date
++from typing import Any
+ 
+-from . import storage
++from . import priority, storage
++
++# Strategy table: each sort mode is a key function. Adding a mode = adding one entry.
++SORT_KEYS: dict[str, Callable[[dict[str, Any]], Any]] = {
++    "id": lambda t: t["id"],
++    "priority": lambda t: priority.rank(t["priority"]),
++    "due": lambda t: t["due"] or "9999-12-31",
++}
+ 
+ 
+ def add_task(title, priority="medium", due=None, path=None):
+@@ -41,22 +50,8 @@ def list_tasks(show_done=True, sort_by="id", path=None):
+     if not show_done:
+         tasks = [t for t in tasks if not t["done"]]
+ 
+-    if sort_by == "priority":
+-        def key(t):
+-            if t["priority"] == "high":
+-                return 0
+-            elif t["priority"] == "medium":
+-                return 1
+-            elif t["priority"] == "low":
+-                return 2
+-            else:
+-                return 3
+-        tasks = sorted(tasks, key=key)
+-    elif sort_by == "due":
+-        tasks = sorted(tasks, key=lambda t: t["due"] or "9999-12-31")
+-    else:
+-        tasks = sorted(tasks, key=lambda t: t["id"])
+-    return tasks
++    key = SORT_KEYS.get(sort_by, SORT_KEYS["id"])
++    return sorted(tasks, key=key)
+ 
+ 
+ def overdue_tasks(today=None, path=None):

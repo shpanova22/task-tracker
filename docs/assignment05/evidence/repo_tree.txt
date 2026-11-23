@@ -1,0 +1,13 @@
+./.gitignore
+./ACCEPTANCE.md
+./AGENTS.md
+./README.md
+./pyproject.toml
+./requirements-dev.txt
+./scripts/check_acceptance.sh
+./tasktracker/__init__.py
+./tasktracker/__main__.py
+./tasktracker/cli.py
+./tasktracker/storage.py
+./tasktracker/tracker.py
+./tests/test_tracker.py

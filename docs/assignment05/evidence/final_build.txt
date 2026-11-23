@@ -1,0 +1,3 @@
+$ python -m build --outdir /tmp/dist_final   # FINAL
+Successfully built tasktracker-0.1.0.tar.gz and tasktracker-0.1.0-py3-none-any.whl
+exit=0

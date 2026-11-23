@@ -1,0 +1,8 @@
+$ bash scripts/check_acceptance.sh
+PASS AC1
+PASS AC2
+PASS AC3
+PASS AC4
+PASS AC5
+acceptance: 5 passed, 0 failed
+exit=0

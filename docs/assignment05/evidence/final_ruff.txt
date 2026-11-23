@@ -1,0 +1,5 @@
+$ ruff check .   # FINAL
+DTZ011 `datetime.date.today()` used
+  --> tasktracker/tracker.py:58:22
+Found 1 error.
+exit=1

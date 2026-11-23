@@ -1,0 +1,59 @@
+diff --git a/tasktracker/cli.py b/tasktracker/cli.py
+index e87df11..8470830 100644
+--- a/tasktracker/cli.py
++++ b/tasktracker/cli.py
+@@ -1,7 +1,7 @@
+ import argparse
+ import sys
+ 
+-from . import priority, tracker
++from . import priority, storage, tracker
+ 
+ 
+ def format_task(t):
+@@ -33,7 +33,14 @@ def main(argv=None):
+     sub.add_parser("overdue", help="show overdue tasks")
+ 
+     args = parser.parse_args(argv)
++    try:
++        return _run(args, parser)
++    except storage.StorageError as e:
++        print(f"Error: {e}", file=sys.stderr)
++        return 2
+ 
++
++def _run(args, parser):
+     if args.command == "add":
+         t = tracker.add_task(args.title, args.priority, args.due)
+         print(f"Added task {t['id']}: {t['title']}")
+diff --git a/tasktracker/storage.py b/tasktracker/storage.py
+index a396a13..c7833ef 100644
+--- a/tasktracker/storage.py
++++ b/tasktracker/storage.py
+@@ -8,12 +8,25 @@ def get_path():
+     return os.environ.get("TASKS_FILE", DEFAULT_FILE)
+ 
+ 
++class StorageError(Exception):
++    """The tasks file exists but cannot be used. It is never overwritten in this case."""
++
++
+ def load_tasks(path=None):
+     path = path or get_path()
+     if not os.path.exists(path):
+         return []
+     with open(path, "r", encoding="utf-8") as f:
+-        return json.load(f)
++        try:
++            data = json.load(f)
++        except json.JSONDecodeError as e:
++            raise StorageError(
++                f"tasks file '{path}' is corrupted (invalid JSON: {e.msg}, line {e.lineno}). "
++                "Fix or move it; it was not modified."
++            ) from e
++    if not isinstance(data, list):
++        raise StorageError(f"tasks file '{path}' is corrupted (expected a JSON list).")
++    return data
+ 
+ 
+ def save_tasks(tasks, path=None):

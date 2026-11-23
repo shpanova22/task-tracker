@@ -1,0 +1,5 @@
+$ python -m build --outdir /tmp/dist_base
+adding 'tasktracker-0.1.0.dist-info/RECORD'
+removing build/bdist.linux-x86_64/wheel
+Successfully built tasktracker-0.1.0.tar.gz and tasktracker-0.1.0-py3-none-any.whl
+exit=0

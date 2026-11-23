@@ -1,0 +1,17 @@
+$ python -m pytest -v
+============================= test session starts ==============================
+platform linux -- Python 3.13.18, pytest-9.1.1, pluggy-1.6.0 -- /usr/local/bin/python
+rootdir: /home/claude/task-tracker
+configfile: pyproject.toml
+plugins: platformdirs-4.13.5, anyio-4.15.1
+collecting ... collected 6 items
+
+tests/test_tracker.py::test_add_task PASSED                              [ 16%]
+tests/test_tracker.py::test_complete_task PASSED                         [ 33%]
+tests/test_tracker.py::test_complete_missing_task PASSED                 [ 50%]
+tests/test_tracker.py::test_list_pending_only PASSED                     [ 66%]
+tests/test_tracker.py::test_sort_by_priority PASSED                      [ 83%]
+tests/test_tracker.py::test_overdue PASSED                               [100%]
+
+============================== 6 passed in 0.03s ===============================
+exit=0

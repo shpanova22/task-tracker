@@ -1,0 +1,14 @@
+$ ruff check .
+DTZ011 `datetime.date.today()` used
+  --> tasktracker/tracker.py:63:22
+   |
+62 | def overdue_tasks(today=None, path=None):
+63 |     today = today or date.today().isoformat()
+   |                      ^^^^^^^^^^^^
+64 |     return [
+65 |         t for t in storage.load_tasks(path)
+   |
+help: Use `datetime.datetime.now(tz=...).date()` instead
+
+Found 1 error.
+exit=1

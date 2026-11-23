@@ -1,0 +1,87 @@
+=== R1 duplicate ids after delete ===
+$ tasktracker add A
+Added task 1: A
+exit=0
+$ tasktracker add B
+Added task 2: B
+exit=0
+$ tasktracker add C
+Added task 3: C
+exit=0
+$ tasktracker delete 1
+Deleted task 1
+exit=0
+$ tasktracker add D
+Added task 4: D
+exit=0
+$ tasktracker list
+  2 [ ] !!  B
+  3 [ ] !!  C
+  4 [ ] !!  D
+exit=0
+$ tasktracker delete 3
+Deleted task 3
+exit=0
+$ tasktracker list
+  2 [ ] !!  B
+  4 [ ] !!  D
+exit=0
+=== R2 corrupted / empty tasks.json ===
+$ tasktracker list
+Error: tasks file '/tmp/tmp.Cb01UUXChb/tasks.json' is corrupted (invalid JSON: Expecting value, line 1). Fix or move it; it was not modified.
+exit=2
+$ tasktracker add X
+Error: tasks file '/tmp/tmp.Cb01UUXChb/tasks.json' is corrupted (invalid JSON: Expecting value, line 1). Fix or move it; it was not modified.
+exit=2
+=== R3 non-atomic save (fault injected during json.dump) ===
+$ tasktracker add important
+Added task 1: important
+exit=0
+crash: simulated crash during write
+file now: [{"id": 1, "ti
+$ tasktracker list
+Error: tasks file '/tmp/tmp.hLuV6qvcT4/tasks.json' is corrupted (invalid JSON: Unterminated string starting at, line 1). Fix or move it; it was not modified.
+exit=2
+=== R4 invalid due date accepted ===
+$ tasktracker add bad date --due 01.12.2026
+Added task 1: bad date
+exit=0
+$ tasktracker add nonsense --due tomorrow
+Added task 2: nonsense
+exit=0
+$ tasktracker overdue
+  1 [ ] !!  bad date (due 01.12.2026)
+exit=0
+=== R5 unknown priority accepted ===
+$ tasktracker add typo prio --priority hihg
+Added task 1: typo prio
+exit=0
+$ tasktracker list
+  1 [ ] ?   typo prio
+exit=0
+=== R6 README commands ===
+8:pip install -r requirements.txt
+14:python tracker.py add "Buy milk" --priority high --due 2026-12-01
+15:python tracker.py list
+16:python tracker.py done 1
+ls: cannot access 'requirements.txt': No such file or directory
+ls: cannot access 'tracker.py': No such file or directory
+=== R7 unpinned / missing dev deps ===
+pytest
+0
+ruff 0.16.9
+=== R8 TASKS_FILE path traversal ===
+8:    return os.environ.get("TASKS_FILE", DEFAULT_FILE)
+=== R9 insecure deserialization claim ===
+tasktracker/storage.py:21:            data = json.load(f)
+=== R10 default data path inside working dir ===
+4:DEFAULT_FILE = "tasks.json"
+8:    return os.environ.get("TASKS_FILE", DEFAULT_FILE)
+6:tasks.json
+=== R12 mypy skips untyped functions ===
+Success: no issues found in 6 source files
+tasktracker/cli.py:43: error: Function is missing a type annotation  [no-untyped-def]
+Found 11 errors in 3 files (checked 6 source files)
+=== R13 local-time date.today ===
+DTZ011 `datetime.date.today()` used
+  --> tasktracker/tracker.py:58:22

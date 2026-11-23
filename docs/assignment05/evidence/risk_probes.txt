@@ -1,0 +1,95 @@
+=== R1 duplicate ids after delete ===
+$ tasktracker add A
+Added task 1: A
+exit=0
+$ tasktracker add B
+Added task 2: B
+exit=0
+$ tasktracker add C
+Added task 3: C
+exit=0
+$ tasktracker delete 1
+Deleted task 1
+exit=0
+$ tasktracker add D
+Added task 3: D
+exit=0
+$ tasktracker list
+  2 [ ] !!  B
+  3 [ ] !!  C
+  3 [ ] !!  D
+exit=0
+$ tasktracker delete 3
+Deleted task 3
+exit=0
+$ tasktracker list
+  2 [ ] !!  B
+exit=0
+=== R2 corrupted / empty tasks.json ===
+$ tasktracker list
+               ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/json/decoder.py", line 363, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+exit=1
+$ tasktracker add X
+               ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.13/json/decoder.py", line 363, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 12 (char 11)
+exit=1
+=== R3 non-atomic save (fault injected during json.dump) ===
+$ tasktracker add important
+Added task 1: important
+exit=0
+crash: simulated crash during write
+file now: [{"id": 1, "ti
+$ tasktracker list
+  File "/usr/local/lib/python3.13/json/decoder.py", line 361, in raw_decode
+    obj, end = self.scan_once(s, idx)
+               ~~~~~~~~~~~~~~^^^^^^^^
+json.decoder.JSONDecodeError: Unterminated string starting at: line 1 column 12 (char 11)
+exit=1
+=== R4 invalid due date accepted ===
+$ tasktracker add bad date --due 01.12.2026
+Added task 1: bad date
+exit=0
+$ tasktracker add nonsense --due tomorrow
+Added task 2: nonsense
+exit=0
+$ tasktracker overdue
+  1 [ ] !!  bad date (due 01.12.2026)
+exit=0
+=== R5 unknown priority accepted ===
+$ tasktracker add typo prio --priority hihg
+Added task 1: typo prio
+exit=0
+$ tasktracker list
+  1 [ ] ?   typo prio
+exit=0
+=== R6 README commands ===
+8:pip install -r requirements.txt
+14:python tracker.py add "Buy milk" --priority high --due 2026-12-01
+15:python tracker.py list
+16:python tracker.py done 1
+ls: cannot access 'requirements.txt': No such file or directory
+ls: cannot access 'tracker.py': No such file or directory
+=== R7 unpinned / missing dev deps ===
+pytest
+0
+ruff 0.16.9
+=== R8 TASKS_FILE path traversal ===
+8:    return os.environ.get("TASKS_FILE", DEFAULT_FILE)
+=== R9 insecure deserialization claim ===
+tasktracker/storage.py:16:        return json.load(f)
+=== R10 default data path inside working dir ===
+4:DEFAULT_FILE = "tasks.json"
+8:    return os.environ.get("TASKS_FILE", DEFAULT_FILE)
+6:tasks.json
+=== R12 mypy skips untyped functions ===
+Success: no issues found in 6 source files
+tasktracker/cli.py:14: error: Function is missing a type annotation  [no-untyped-def]
+Found 10 errors in 3 files (checked 6 source files)
+=== R13 local-time date.today ===
+DTZ011 `datetime.date.today()` used
+  --> tasktracker/tracker.py:58:22

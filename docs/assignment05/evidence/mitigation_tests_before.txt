@@ -1,0 +1,13 @@
+$ python -m pytest -q tests/test_mitigations.py   # BEFORE fixes
+/usr/local/lib/python3.13/json/decoder.py:363: JSONDecodeError
+>       with pytest.raises(storage.StorageError):
+E       AttributeError: module 'tasktracker.storage' has no attribute 'StorageError'
+tests/test_mitigations.py:51: AttributeError
+FAILED tests/test_mitigations.py::test_ids_unique_after_delete - assert 3 == 4
+FAILED tests/test_mitigations.py::test_delete_after_readd_removes_only_one_task
+FAILED tests/test_mitigations.py::test_corrupted_file_raises_storage_error[]
+FAILED tests/test_mitigations.py::test_corrupted_file_raises_storage_error[{"broken": ]
+FAILED tests/test_mitigations.py::test_corrupted_file_raises_storage_error[not json]
+FAILED tests/test_mitigations.py::test_cli_reports_corrupted_file_and_keeps_it
+FAILED tests/test_mitigations.py::test_non_list_json_is_rejected - AttributeE...
+7 failed in 0.10s

@@ -1,0 +1,5 @@
+ tasktracker/cli.py      | 13 +++----------
+ tasktracker/priority.py | 16 ++++++++++++++++
+ tasktracker/tracker.py  | 28 +++++++++++-----------------
+ tests/test_tracker.py   | 10 ++++++++++
+ 4 files changed, 40 insertions(+), 27 deletions(-)
